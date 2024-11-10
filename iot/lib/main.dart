@@ -172,38 +172,36 @@ class _DataDisplayPageState extends State<DataDisplayPage> {
                         const SizedBox(height: 40),
                         Center(
                           child: ElevatedButton(
-  onPressed: () => sendPipeRequest('on'),
-  style: ElevatedButton.styleFrom(
-    backgroundColor: Colors.green, // Green color for "Open the Pipe"
-    padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 20),
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(30),
-    ),
-  ),
-  child: const Text(
-    'Open the Pipe',
-    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-  ),
-),
-
+                            onPressed: () => sendPipeRequest('on'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.green, // Green color for "Open the Pipe"
+                              padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 20),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(30),
+                              ),
+                            ),
+                            child: const Text(
+                              'Open the Pipe',
+                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                            ),
+                          ),
                         ),
                         const SizedBox(height: 20),
                         Center(
                           child: ElevatedButton(
-  onPressed: () => sendPipeRequest('off'),
-  style: ElevatedButton.styleFrom(
-    backgroundColor: Colors.red, // Red color for "Close the Pipe"
-    padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 20),
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(30),
-    ),
-  ),
-  child: const Text(
-    'Close the Pipe',
-    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-  ),
-),
-
+                            onPressed: () => sendPipeRequest('off'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.red, // Red color for "Close the Pipe"
+                              padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 20),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(30),
+                              ),
+                            ),
+                            child: const Text(
+                              'Close the Pipe',
+                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                            ),
+                          ),
                         ),
                       ],
                     ),
