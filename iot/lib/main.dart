@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'dart:async';  // Import for Timer
+import 'dart:async';
 
 void main() {
   runApp(const MyApp());
@@ -33,24 +33,23 @@ class DataDisplayPage extends StatefulWidget {
 class _DataDisplayPageState extends State<DataDisplayPage> {
   Map<String, dynamic>? data;
   bool isLoading = true;
-  late Timer _timer;  // Timer variable to periodically fetch data
+  late Timer _timer;
 
   @override
   void initState() {
     super.initState();
-    fetchData();  // Initial fetch
-    // Set up a timer to fetch data every 20 seconds
+    fetchData();
     _timer = Timer.periodic(const Duration(seconds: 20), (_) => fetchData());
   }
 
   @override
   void dispose() {
-    _timer.cancel();  // Cancel the timer when the widget is disposed
+    _timer.cancel();
     super.dispose();
   }
 
   Future<void> fetchData() async {
-    final url = Uri.parse('https://iot-3ogs.onrender.com/receive'); // Replace with your actual URL
+    final url = Uri.parse('https://iot-3ogs.onrender.com/receive');
 
     try {
       final response = await http.get(url);
@@ -129,7 +128,7 @@ class _DataDisplayPageState extends State<DataDisplayPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('IoT Data Display'),
-        backgroundColor: Colors.deepPurple, // AppBar background color
+        backgroundColor: Colors.deepPurple,
         centerTitle: true,
         elevation: 10,
         flexibleSpace: Container(
@@ -162,9 +161,9 @@ class _DataDisplayPageState extends State<DataDisplayPage> {
                             padding: const EdgeInsets.all(16.0),
                             child: Column(
                               children: [
-                                buildProgressIndicator("Temperature", data!['temperature'].toDouble()),
-                                buildProgressIndicator("Humidity", data!['humidity'].toDouble()),
-                                buildProgressIndicator("Soil Moisture", data!['soilMoisture'].toDouble()),
+                                buildProgressIndicator("Temperature", data!['temperature']?.toDouble() ?? 0.0),
+                                buildProgressIndicator("Humidity", data!['humidity']?.toDouble() ?? 0.0),
+                                buildProgressIndicator("Soil Moisture", data!['soilMoisture']?.toDouble() ?? 0.0),
                               ],
                             ),
                           ),
@@ -174,7 +173,7 @@ class _DataDisplayPageState extends State<DataDisplayPage> {
                           child: ElevatedButton(
                             onPressed: () => sendPipeRequest('on'),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.green, // Green color for "Open the Pipe"
+                              backgroundColor: Colors.green,
                               padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 20),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(30),
@@ -191,7 +190,7 @@ class _DataDisplayPageState extends State<DataDisplayPage> {
                           child: ElevatedButton(
                             onPressed: () => sendPipeRequest('off'),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.red, // Red color for "Close the Pipe"
+                              backgroundColor: Colors.red,
                               padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 20),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(30),
