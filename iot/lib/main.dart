@@ -30,21 +30,28 @@ class DataDisplayPage extends StatefulWidget {
   State<DataDisplayPage> createState() => _DataDisplayPageState();
 }
 
-class _DataDisplayPageState extends State<DataDisplayPage> {
+class _DataDisplayPageState extends State<DataDisplayPage>
+    with SingleTickerProviderStateMixin {
   Map<String, dynamic>? data;
   bool isLoading = true;
   late Timer _timer;
+  late AnimationController _controller;
 
   @override
   void initState() {
     super.initState();
     fetchData();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 10),
+    )..repeat(reverse: true);
     _timer = Timer.periodic(const Duration(seconds: 20), (_) => fetchData());
   }
 
   @override
   void dispose() {
     _timer.cancel();
+    _controller.dispose();
     super.dispose();
   }
 
@@ -105,6 +112,7 @@ class _DataDisplayPageState extends State<DataDisplayPage> {
   }
 
   Future<void> sendPipeRequest(String status) async {
+    print(status);
     final url = Uri.parse('https://iot-3ogs.onrender.com/send');
     try {
       final response = await http.post(
@@ -131,14 +139,23 @@ class _DataDisplayPageState extends State<DataDisplayPage> {
         backgroundColor: Colors.deepPurple,
         centerTitle: true,
         elevation: 10,
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Colors.purple, Colors.deepPurple],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-          ),
+        flexibleSpace: AnimatedBuilder(
+          animation: _controller,
+          builder: (context, child) {
+            return Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    Colors.deepPurple,
+                    Colors.purple.withOpacity(0.5 + 0.5 * _controller.value),
+                    Colors.deepPurple,
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+              ),
+            );
+          },
         ),
       ),
       body: isLoading
@@ -161,9 +178,12 @@ class _DataDisplayPageState extends State<DataDisplayPage> {
                             padding: const EdgeInsets.all(16.0),
                             child: Column(
                               children: [
-                                buildProgressIndicator("Temperature", data!['temperature']?.toDouble() ?? 0.0),
-                                buildProgressIndicator("Humidity", data!['humidity']?.toDouble() ?? 0.0),
-                                buildProgressIndicator("Soil Moisture", data!['soilMoisture']?.toDouble() ?? 0.0),
+                                buildProgressIndicator("Temperature",
+                                    data!['temperature']?.toDouble() ?? 0.0),
+                                buildProgressIndicator("Humidity",
+                                    data!['humidity']?.toDouble() ?? 0.0),
+                                buildProgressIndicator("Soil Moisture",
+                                    data!['soilMoisture']?.toDouble() ?? 0.0),
                               ],
                             ),
                           ),
@@ -174,14 +194,16 @@ class _DataDisplayPageState extends State<DataDisplayPage> {
                             onPressed: () => sendPipeRequest('on'),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.green,
-                              padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 20),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 50, vertical: 20),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(30),
                               ),
                             ),
                             child: const Text(
                               'Open the Pipe',
-                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                              style: TextStyle(
+                                  fontSize: 18, fontWeight: FontWeight.bold),
                             ),
                           ),
                         ),
@@ -191,14 +213,16 @@ class _DataDisplayPageState extends State<DataDisplayPage> {
                             onPressed: () => sendPipeRequest('off'),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.red,
-                              padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 20),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 50, vertical: 20),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(30),
                               ),
                             ),
                             child: const Text(
                               'Close the Pipe',
-                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                              style: TextStyle(
+                                  fontSize: 18, fontWeight: FontWeight.bold),
                             ),
                           ),
                         ),
