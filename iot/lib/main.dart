@@ -82,13 +82,23 @@ class _DataDisplayPageState extends State<DataDisplayPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('$label: ${value.toStringAsFixed(1)}%'),
+        Text(
+          '$label: ${value.toStringAsFixed(1)}%',
+          style: const TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
         const SizedBox(height: 8),
-        LinearProgressIndicator(
-          value: value / 100,
-          color: getColorForValue(value),
-          backgroundColor: Colors.grey[300],
-          minHeight: 10,
+        ClipRRect(
+          borderRadius: BorderRadius.circular(20),
+          child: LinearProgressIndicator(
+            value: value / 100,
+            color: getColorForValue(value),
+            backgroundColor: Colors.grey[300],
+            minHeight: 12,
+          ),
         ),
         const SizedBox(height: 20),
       ],
@@ -96,7 +106,6 @@ class _DataDisplayPageState extends State<DataDisplayPage> {
   }
 
   Future<void> sendPipeRequest(String status) async {
-    // Simulate sending a request to open/close the pipe
     final url = Uri.parse('https://iot-3ogs.onrender.com/send');
     try {
       final response = await http.post(
@@ -120,6 +129,18 @@ class _DataDisplayPageState extends State<DataDisplayPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('IoT Data Display'),
+        backgroundColor: Colors.deepPurple, // AppBar background color
+        centerTitle: true,
+        elevation: 10,
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.purple, Colors.deepPurple],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -127,23 +148,65 @@ class _DataDisplayPageState extends State<DataDisplayPage> {
               ? const Center(child: Text("No data found"))
               : Padding(
                   padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      buildProgressIndicator("Temperature", data!['temperature'].toDouble()),
-                      buildProgressIndicator("Humidity", data!['humidity'].toDouble()),
-                      buildProgressIndicator("Soil Moisture", data!['soilMoisture'].toDouble()),
-                      const SizedBox(height: 40),
-                      ElevatedButton(
-                        onPressed: () => sendPipeRequest('on'),
-                        child: const Text('Open the Pipe'),
-                      ),
-                      const SizedBox(height: 20),
-                      ElevatedButton(
-                        onPressed: () => sendPipeRequest('off'),
-                        child: const Text('Close the Pipe'),
-                      ),
-                    ],
+                  child: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Card(
+                          color: Colors.deepPurpleAccent,
+                          elevation: 10,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: Column(
+                              children: [
+                                buildProgressIndicator("Temperature", data!['temperature'].toDouble()),
+                                buildProgressIndicator("Humidity", data!['humidity'].toDouble()),
+                                buildProgressIndicator("Soil Moisture", data!['soilMoisture'].toDouble()),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 40),
+                        Center(
+                          child: ElevatedButton(
+  onPressed: () => sendPipeRequest('on'),
+  style: ElevatedButton.styleFrom(
+    backgroundColor: Colors.green, // Green color for "Open the Pipe"
+    padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 20),
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(30),
+    ),
+  ),
+  child: const Text(
+    'Open the Pipe',
+    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+  ),
+),
+
+                        ),
+                        const SizedBox(height: 20),
+                        Center(
+                          child: ElevatedButton(
+  onPressed: () => sendPipeRequest('off'),
+  style: ElevatedButton.styleFrom(
+    backgroundColor: Colors.red, // Red color for "Close the Pipe"
+    padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 20),
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(30),
+    ),
+  ),
+  child: const Text(
+    'Close the Pipe',
+    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+  ),
+),
+
+                        ),
+                      ],
+                    ),
                   ),
                 ),
     );
