@@ -2,9 +2,24 @@ import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'dart:async';
+import 'package:awesome_notifications/awesome_notifications.dart';
 
 void main() {
   runApp(const MyApp());
+  AwesomeNotifications().initialize(
+    null, // Use default app icon
+    [
+      NotificationChannel(
+        channelKey: 'basic_channel',
+        channelName: 'Basic Notifications',
+        channelDescription: 'Notification channel for basic alerts',
+        defaultColor: Color(0xFF9D50DD),
+        ledColor: Colors.white,
+        importance: NotificationImportance.High,
+        channelShowBadge: true,
+      )
+    ],
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -18,6 +33,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
+      debugShowCheckedModeBanner: false,
       home: const DataDisplayPage(),
     );
   }
@@ -34,18 +50,20 @@ class _DataDisplayPageState extends State<DataDisplayPage>
     with SingleTickerProviderStateMixin {
   Map<String, dynamic>? data;
   bool isLoading = true;
+  bool isPipeOn = false;
   late Timer _timer;
   late AnimationController _controller;
 
   @override
   void initState() {
     super.initState();
+
     fetchData();
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 10),
     )..repeat(reverse: true);
-    _timer = Timer.periodic(const Duration(seconds: 20), (_) => fetchData());
+    _timer = Timer.periodic(const Duration(seconds: 5), (_) => fetchData());
   }
 
   @override
@@ -66,6 +84,14 @@ class _DataDisplayPageState extends State<DataDisplayPage>
           data = json.decode(response.body);
           isLoading = false;
         });
+
+        final soilMoisture = data!['soilMoisture']?.toDouble() ?? 0.0;
+        if (soilMoisture < 40) {
+          showNotification(
+            title: 'Warning',
+            body: 'Soil moisture is below 40%.',
+          );
+        }
       } else {
         throw Exception('Failed to load data');
       }
@@ -75,6 +101,43 @@ class _DataDisplayPageState extends State<DataDisplayPage>
       });
       print('Error: $e');
     }
+  }
+
+  Future<void> sendPipeRequest(String status) async {
+    final url = Uri.parse('https://iot-3ogs.onrender.com/send');
+    try {
+      final response = await http.post(
+        url,
+        headers: {"Content-Type": "application/json"},
+        body: json.encode({"status": status}),
+      );
+
+      if (response.statusCode == 200) {
+        setState(() {
+          isPipeOn = status == 'on';
+        });
+        showNotification(
+          title: 'Pipe Status Changed',
+          body: 'Pipe is now ${isPipeOn ? "on" : "off"}',
+        );
+      } else {
+        print('Failed to change pipe status');
+      }
+    } catch (e) {
+      print('Error sending pipe request: $e');
+    }
+  }
+
+  Future<void> showNotification({required String title, required String body}) async {
+    AwesomeNotifications().createNotification(
+      content: NotificationContent(
+        id: 10,
+        channelKey: 'basic_channel',
+        title: title,
+        body: body,
+        notificationLayout: NotificationLayout.Default,
+      ),
+    );
   }
 
   Color getColorForValue(double value) {
@@ -109,26 +172,6 @@ class _DataDisplayPageState extends State<DataDisplayPage>
         const SizedBox(height: 20),
       ],
     );
-  }
-
-  Future<void> sendPipeRequest(String status) async {
-    print(status);
-    final url = Uri.parse('https://iot-3ogs.onrender.com/send');
-    try {
-      final response = await http.post(
-        url,
-        headers: {"Content-Type": "application/json"},
-        body: json.encode({"status": status}),
-      );
-
-      if (response.statusCode == 200) {
-        print('Pipe status changed to: $status');
-      } else {
-        print('Failed to change pipe status');
-      }
-    } catch (e) {
-      print('Error sending pipe request: $e');
-    }
   }
 
   @override
