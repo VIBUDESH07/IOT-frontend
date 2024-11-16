@@ -2,24 +2,9 @@ import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'dart:async';
-import 'package:awesome_notifications/awesome_notifications.dart';
 
 void main() {
   runApp(const MyApp());
-  AwesomeNotifications().initialize(
-    null, // Use default app icon
-    [
-      NotificationChannel(
-        channelKey: 'basic_channel',
-        channelName: 'Basic Notifications',
-        channelDescription: 'Notification channel for basic alerts',
-        defaultColor: Color(0xFF9D50DD),
-        ledColor: Colors.white,
-        importance: NotificationImportance.High,
-        channelShowBadge: true,
-      )
-    ],
-  );
 }
 
 class MyApp extends StatelessWidget {
@@ -57,8 +42,8 @@ class _DataDisplayPageState extends State<DataDisplayPage>
   @override
   void initState() {
     super.initState();
-
     fetchData();
+    fetchPipeStatus(); // Fetch initial pipe status
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 10),
@@ -87,10 +72,8 @@ class _DataDisplayPageState extends State<DataDisplayPage>
 
         final soilMoisture = data!['soilMoisture']?.toDouble() ?? 0.0;
         if (soilMoisture < 40) {
-          showNotification(
-            title: 'Warning',
-            body: 'Soil moisture is below 40%.',
-          );
+          // Log message instead of sending a notification
+          print('Warning: Soil moisture is below 40%.');
         }
       } else {
         throw Exception('Failed to load data');
@@ -100,6 +83,25 @@ class _DataDisplayPageState extends State<DataDisplayPage>
         isLoading = false;
       });
       print('Error: $e');
+    }
+  }
+
+  Future<void> fetchPipeStatus() async {
+    final url = Uri.parse('https://iot-3ogs.onrender.com/pipe_status');
+
+    try {
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        setState(() {
+          final pipeData = json.decode(response.body);
+          isPipeOn = pipeData['pipeStatus'] == 'on';
+        });
+      } else {
+        print('Failed to fetch pipe status');
+      }
+    } catch (e) {
+      print('Error fetching pipe status: $e');
     }
   }
 
@@ -116,28 +118,14 @@ class _DataDisplayPageState extends State<DataDisplayPage>
         setState(() {
           isPipeOn = status == 'on';
         });
-        showNotification(
-          title: 'Pipe Status Changed',
-          body: 'Pipe is now ${isPipeOn ? "on" : "off"}',
-        );
+        // Log pipe status change instead of sending a notification
+        print('Pipe is now ${isPipeOn ? "on" : "off"}');
       } else {
         print('Failed to change pipe status');
       }
     } catch (e) {
       print('Error sending pipe request: $e');
     }
-  }
-
-  Future<void> showNotification({required String title, required String body}) async {
-    AwesomeNotifications().createNotification(
-      content: NotificationContent(
-        id: 10,
-        channelKey: 'basic_channel',
-        title: title,
-        body: body,
-        notificationLayout: NotificationLayout.Default,
-      ),
-    );
   }
 
   Color getColorForValue(double value) {
@@ -221,12 +209,19 @@ class _DataDisplayPageState extends State<DataDisplayPage>
                             padding: const EdgeInsets.all(16.0),
                             child: Column(
                               children: [
-                                buildProgressIndicator("Temperature",
-                                    data!['temperature']?.toDouble() ?? 0.0),
-                                buildProgressIndicator("Humidity",
-                                    data!['humidity']?.toDouble() ?? 0.0),
-                                buildProgressIndicator("Soil Moisture",
-                                    data!['soilMoisture']?.toDouble() ?? 0.0),
+                                buildProgressIndicator(
+                                  "Soil Moisture",
+                                  data!['soilMoisture']?.toDouble() ?? 0.0,
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  'Pipe Status: ${isPipeOn ? "On" : "Off"}',
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
                               ],
                             ),
                           ),
